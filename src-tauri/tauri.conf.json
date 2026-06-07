@@ -1,0 +1,72 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Sparrow Downloader",
+  "version": "1.0.0-beta.1",
+  "identifier": "com.ydpro.app",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Sparrow Downloader",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+
+    "publisher": "Ravi Kumar",
+    "copyright": "Copyright © 2025 Ravi Kumar. All rights reserved.",
+    "category": "Utility",
+    "shortDescription": "Professional YouTube video and audio downloader",
+    "longDescription": "Sparrow Downloader is a professional desktop application for downloading YouTube videos, audio, playlists, channels, and batch URLs. Built with Tauri v2 and yt-dlp for maximum performance and reliability.",
+    "homepage": "https://github.com/YOUR_GITHUB_USERNAME/sparrow-downloader",
+
+    "icon": [
+      "icons/icon.ico"
+    ],
+
+    "windows": {
+      "timestampUrl": "http://timestamp.digicert.com",
+      "tsp": false,
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      },
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "installMode": "currentUser",
+        "languages": ["English"],
+        "displayLanguageSelector": false,
+        "startMenuFolder": "Sparrow Downloader",
+        "compression": "lzma"
+      }
+    }
+  },
+
+  "plugins": {
+    "updater": {
+      "pubkey": "REPLACE_WITH_YOUR_PUBLIC_KEY",
+      "endpoints": [
+        "https://github.com/YOUR_GITHUB_USERNAME/sparrow-downloader/releases/latest/download/latest.json"
+      ],
+      "dialog": false
+    }
+  }
+}

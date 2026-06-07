@@ -1,0 +1,29 @@
+name: Generate latest.json
+
+# Runs automatically after the Release workflow finishes,
+# OR manually from the Actions tab.
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.0.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate latest.json via tauri-action
+        # tauri-action already uploads latest.json as a release asset.
+        # This job is a safety net in case manual regeneration is needed.
+        run: |
+          echo "latest.json is generated automatically by tauri-apps/tauri-action."
+          echo "See the release assets at https://github.com/${{ github.repository }}/releases"

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- Background gradient: purple → blue (matches app design tokens) -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#5B52EE"/>
+      <stop offset="55%"  stop-color="#6C63FF"/>
+      <stop offset="100%" stop-color="#4DA3FF"/>
+    </linearGradient>
+    <!-- Inner top highlight for depth -->
+    <linearGradient id="shine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="rgba(255,255,255,0.18)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+    <!-- Soft shadow on the bird -->
+    <filter id="bird-shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="14" flood-color="rgba(0,0,0,0.35)"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="108" ry="108" fill="url(#bg)"/>
+
+  <!-- Subtle top-half shine for glassmorphism feel -->
+  <rect width="512" height="270" rx="108" ry="108" fill="url(#shine)"/>
+
+  <!--
+    Bird icon — drawn in a nested SVG so stroke-width scales naturally.
+    The bird occupies viewBox "1 3 22 19" of its original 24×24 space.
+    It is placed in a 340×260 region centered in the 512×512 canvas.
+    Center X = (512 - 340) / 2 = 86
+    Center Y = (512 - 260) / 2 = 126
+  -->
+  <g filter="url(#bird-shadow)">
+    <svg x="86" y="126" width="340" height="260" viewBox="1 3 22 19">
+      <path
+        d="M22 4c0 0-4 1-6 3-1.5 1.5-2 3-2 3s-2-1-4-1c-3 0-6 2.5-6 6s3 5 5 5c1.5 0 3-1 3-1s1 2 3 2c2.5 0 4-2 4-2s1 1 3 1"
+        stroke="white" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" fill="none"
+        opacity="0.97"
+      />
+      <path
+        d="M2 12s2-1 4 0"
+        stroke="white" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" fill="none"
+        opacity="0.97"
+      />
+    </svg>
+  </g>
+</svg>

@@ -1,0 +1,38 @@
+[package]
+name = "sparrow-downloader"
+version = "1.0.0-beta.1"
+edition = "2021"
+authors = ["Ravi Kumar <ravikumarcyberworld@gmail.com>"]
+description = "Professional YouTube video and audio downloader"
+homepage = "https://github.com/YOUR_GITHUB_USERNAME/sparrow-downloader"
+license = "LicenseRef-Proprietary"
+
+[lib]
+name = "youtube_downloader_pro_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri              = { version = "2", features = [] }
+tauri-plugin-opener  = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
+tokio             = { version = "1", features = ["full"] }
+rusqlite          = { version = "0.32", features = ["bundled"] }
+serde             = { version = "1", features = ["derive"] }
+serde_json        = "1"
+thiserror         = "2"
+uuid              = { version = "1", features = ["v4"] }
+chrono            = { version = "0.4", features = ["serde"] }
+regex             = "1"
+tracing           = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[profile.release]
+panic        = "abort"
+codegen-units = 1
+lto          = true
+opt-level    = "s"
+strip        = true

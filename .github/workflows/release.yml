@@ -1,0 +1,149 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'          # triggers on v1.0.0, v1.1.0-beta.1, etc.
+
+permissions:
+  contents: write     # required to create/update GitHub Releases
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Node ────────────────────────────────────────────────────────────────
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      # ── Rust ────────────────────────────────────────────────────────────────
+      - name: Set up Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust build cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      # ── Icons ───────────────────────────────────────────────────────────────
+      - name: Install ImageMagick
+        run: winget install --id ImageMagick.ImageMagick --silent --accept-package-agreements --accept-source-agreements
+        continue-on-error: true   # don't fail if winget is unavailable; icon.ico already committed
+
+      - name: Generate icon set from SVG
+        shell: pwsh
+        run: |
+          $magick = Get-Command magick -ErrorAction SilentlyContinue
+          if ($magick) {
+            Write-Host "Generating icons with ImageMagick..."
+            .\scripts\generate-icons.ps1
+          } else {
+            Write-Host "ImageMagick not available — using committed icon.ico only"
+          }
+        continue-on-error: true
+
+      # ── Build & publish ─────────────────────────────────────────────────────
+      - name: Build and release (NSIS + MSI)
+        id: tauri_build
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signing keys — set these as GitHub repo secrets.
+          # Generate once with:  npx tauri signer generate -w ~/.tauri/sparrow-downloader.key
+          # Then set TAURI_SIGNING_PRIVATE_KEY + TAURI_SIGNING_PRIVATE_KEY_PASSWORD secrets.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Sparrow Downloader ${{ github.ref_name }}"
+          releaseBody: |
+            ## Sparrow Downloader ${{ github.ref_name }}
+
+            Professional YouTube video and audio downloader.
+
+            ### Installation
+            - **Windows**: Download `Sparrow-Downloader-Setup.exe` and run it.
+            - Installs for the current user (no admin rights required).
+            - Creates Desktop and Start Menu shortcuts automatically.
+
+            ### What's New
+            See the [full changelog](https://github.com/${{ github.repository }}/compare/${{ github.ref_name }}...HEAD).
+          releaseDraft: true
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
+          args: --target ${{ matrix.target }} --bundles nsis,msi
+          updaterJsonPreferNsis: true
+
+      # ── Rename installer ────────────────────────────────────────────────────
+      # Default Tauri NSIS filename: "Sparrow Downloader_1.0.0-beta.1_x64-setup.exe"
+      # Rename it to the clean "Sparrow-Downloader-Setup.exe" for the download button.
+      - name: Rename NSIS installer to Sparrow-Downloader-Setup.exe
+        shell: pwsh
+        run: |
+          $version  = "${{ github.ref_name }}" -replace '^v', ''
+          $srcName  = "Sparrow Downloader_${version}_x64-setup.exe"
+          $dstName  = "Sparrow-Downloader-Setup.exe"
+          $bundleDir = "src-tauri/target/release/bundle/nsis"
+
+          $src = Join-Path $bundleDir $srcName
+          $dst = Join-Path $bundleDir $dstName
+
+          if (Test-Path $src) {
+            Copy-Item $src $dst
+            Write-Host "Renamed: $srcName -> $dstName"
+          } else {
+            Write-Warning "Source installer not found at: $src"
+            Get-ChildItem $bundleDir -ErrorAction SilentlyContinue | Select-Object Name
+          }
+
+      - name: Upload renamed installer to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: src-tauri/target/release/bundle/nsis/Sparrow-Downloader-Setup.exe
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Verify installer metadata ────────────────────────────────────────────
+      - name: Verify installer metadata
+        shell: pwsh
+        run: |
+          $bundleDir = "src-tauri/target/release/bundle/nsis"
+          $installer  = Get-ChildItem $bundleDir -Filter "*setup.exe" | Select-Object -First 1
+          if (-not $installer) {
+            Write-Warning "No installer found in $bundleDir"
+            exit 0
+          }
+          $info = (Get-Item $installer.FullName).VersionInfo
+          Write-Host ""
+          Write-Host "=== Installer Metadata ===" -ForegroundColor Cyan
+          Write-Host "  File          : $($installer.Name)"
+          Write-Host "  Size          : $([math]::Round($installer.Length / 1MB, 2)) MB"
+          Write-Host "  Product Name  : $($info.ProductName)"
+          Write-Host "  Product Ver   : $($info.ProductVersion)"
+          Write-Host "  File Ver      : $($info.FileVersion)"
+          Write-Host "  Company Name  : $($info.CompanyName)"
+          Write-Host "  Copyright     : $($info.LegalCopyright)"
+          Write-Host "  Description   : $($info.FileDescription)"
+          Write-Host "=========================" -ForegroundColor Cyan
+          Write-Host ""
