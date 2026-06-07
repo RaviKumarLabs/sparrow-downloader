@@ -37,11 +37,9 @@
     "category": "Utility",
     "shortDescription": "Professional YouTube video and audio downloader",
     "longDescription": "Sparrow Downloader is a professional desktop application for downloading YouTube videos, audio, playlists, channels, and batch URLs. Built with Tauri v2 and yt-dlp for maximum performance and reliability.",
-    "homepage": "https://github.com/YOUR_GITHUB_USERNAME/sparrow-downloader",
+    "homepage": "https://github.com/RaviKumarLabs/sparrow-downloader",
 
-    "icon": [
-      "icons/icon.ico"
-    ],
+    "icon": ["icons/icon.ico"],
 
     "windows": {
       "timestampUrl": "http://timestamp.digicert.com",
@@ -62,9 +60,9 @@
 
   "plugins": {
     "updater": {
-      "pubkey": "REPLACE_WITH_YOUR_PUBLIC_KEY",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEMyRjMyMDQzNjMyNDREQTIKUldTaVRTUmpReUR6d3E1N0czMld5NXE3SXhpQ1RKcnR0enFuY1ZZc01MMTBLZTc5NWxkREpsczMK",
       "endpoints": [
-        "https://github.com/YOUR_GITHUB_USERNAME/sparrow-downloader/releases/latest/download/latest.json"
+        "https://github.com/RaviKumarLabs/sparrow-downloader/releases/latest/download/latest.json"
       ],
       "dialog": false
     }
