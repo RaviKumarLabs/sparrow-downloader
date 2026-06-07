@@ -1,6 +1,6 @@
 [package]
 name = "sparrow-downloader"
-version = "1.0.4"
+version = "1.0.5"
 edition = "2021"
 authors = ["Ravi Kumar <ravikumarcyberworld@gmail.com>"]
 description = "Professional YouTube video and audio downloader"
