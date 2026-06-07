@@ -4,7 +4,7 @@ version = "1.0.0"
 edition = "2021"
 authors = ["Ravi Kumar <ravikumarcyberworld@gmail.com>"]
 description = "Professional YouTube video and audio downloader"
-homepage = "https://github.com/YOUR_GITHUB_USERNAME/sparrow-downloader"
+homepage = "https://github.com/RaviKumarLabs/sparrow-downloader"
 license = "LicenseRef-Proprietary"
 
 [lib]
