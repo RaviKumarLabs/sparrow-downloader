@@ -5,6 +5,7 @@ use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 
 use crate::error::Result;
+use crate::process_ext::NoWindowExt;
 
 // ---------------------------------------------------------------------------
 // Key constants — single source of truth for DB keys
@@ -336,6 +337,7 @@ fn where_find(name: &str) -> Option<PathBuf> {
         .arg(name)
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
+        .no_window()
         .output()
         .ok()?;
     if !out.status.success() { return None; }
@@ -365,6 +367,7 @@ fn probe_binary(name: &str, version_flag: &str) -> bool {
         .arg(version_flag)
         .stdout(Stdio::null())
         .stderr(Stdio::null())
+        .no_window()
         .status()
         .map(|s| s.success())
         .unwrap_or(false)

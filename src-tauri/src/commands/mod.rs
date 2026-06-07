@@ -12,6 +12,7 @@ use crate::database::{self, Download, DownloadStatus};
 use crate::downloader;
 use crate::error::{AppError, Result};
 use crate::extractor::{self, VideoMetadata};
+use crate::process_ext::NoWindowExt;
 use crate::settings::{self, Settings};
 use crate::state::AppState;
 
@@ -59,6 +60,11 @@ pub async fn save_settings(state: State<'_, AppState>, settings: Settings) -> Re
         .settings
         .write()
         .map_err(|e| AppError::Other(e.to_string()))? = settings;
+
+    // Invalidate the version cache: paths may have changed.
+    if let Ok(mut cache) = state.version_cache.write() {
+        *cache = crate::state::VersionCache::default();
+    }
 
     Ok(())
 }
@@ -590,6 +596,7 @@ pub async fn test_auth(state: State<'_, AppState>) -> Result<String> {
         ])
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
+        .no_window()
         .output()
         .await
         .map_err(AppError::Io)?;
@@ -1141,6 +1148,26 @@ pub async fn get_system_info(state: State<'_, AppState>) -> Result<SystemInfo> {
     };
     let os_arch = std::env::consts::ARCH.to_owned();
 
+    // Fast path: return cached versions without spawning any processes.
+    {
+        let cache = state
+            .version_cache
+            .read()
+            .map_err(|e| AppError::Other(e.to_string()))?;
+        if cache.valid {
+            return Ok(SystemInfo {
+                app_version,
+                os_name,
+                os_arch,
+                ytdlp_version: cache.ytdlp.clone(),
+                ffmpeg_version: cache.ffmpeg.clone(),
+            });
+        }
+    }
+
+    // Slow path: probe both binaries once.  CREATE_NO_WINDOW suppresses the
+    // CMD flash on Windows.  Results are cached so subsequent About page opens
+    // are instant.
     let ytdlp_path = state
         .settings
         .read()
@@ -1153,6 +1180,7 @@ pub async fn get_system_info(state: State<'_, AppState>) -> Result<SystemInfo> {
             .arg("--version")
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::null())
+            .no_window()
             .output()
             .await;
         match out {
@@ -1177,6 +1205,13 @@ pub async fn get_system_info(state: State<'_, AppState>) -> Result<SystemInfo> {
     } else {
         None
     };
+
+    // Store in cache so the next About page open is instantaneous.
+    if let Ok(mut cache) = state.version_cache.write() {
+        cache.ytdlp  = ytdlp_version.clone();
+        cache.ffmpeg = ffmpeg_version.clone();
+        cache.valid  = true;
+    }
 
     Ok(SystemInfo {
         app_version,

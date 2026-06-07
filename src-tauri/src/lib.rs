@@ -4,6 +4,7 @@ mod downloader;
 mod error;
 mod extractor;
 mod media;
+mod process_ext;
 mod queue;
 mod settings;
 mod state;
@@ -66,6 +67,7 @@ pub fn run() {
                 active_downloads: Arc::new(Mutex::new(HashMap::new())),
                 settings: Arc::new(RwLock::new(settings)),
                 queue_notify: Arc::clone(&queue_notify),
+                version_cache: Arc::new(RwLock::new(state::VersionCache::default())),
             });
 
             // Spawn the queue worker that respects max_concurrent_downloads.

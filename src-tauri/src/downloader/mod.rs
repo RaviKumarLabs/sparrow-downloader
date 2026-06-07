@@ -6,6 +6,8 @@ use std::process::Stdio;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
+use crate::process_ext::NoWindowExt;
+
 use serde::Serialize;
 use tauri::{AppHandle, Emitter};
 use tokio::io::{AsyncBufReadExt, BufReader};
@@ -393,6 +395,8 @@ async fn run_download(
         .stderr(Stdio::piped())
         // Safety net: if this task is dropped the child is killed automatically.
         .kill_on_drop(true)
+        // Prevent a CMD window from flashing on Windows.
+        .no_window()
         .spawn()
     {
         Ok(p) => p,

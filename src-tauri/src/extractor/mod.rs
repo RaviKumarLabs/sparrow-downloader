@@ -4,6 +4,7 @@ use std::process::Stdio;
 use serde::{Deserialize, Serialize};
 
 use crate::error::{AppError, Result};
+use crate::process_ext::NoWindowExt;
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -168,6 +169,7 @@ pub async fn fetch_metadata(
     let output = cmd
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
+        .no_window()
         .output()
         .await?;
 
@@ -293,6 +295,7 @@ pub async fn fetch_playlist(
     let output = cmd
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
+        .no_window()
         .output()
         .await?;
 

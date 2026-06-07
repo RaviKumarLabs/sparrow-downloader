@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 use std::process::Stdio;
 
 use crate::error::{AppError, Result};
+use crate::process_ext::NoWindowExt;
 
 // ---------------------------------------------------------------------------
 // Path resolution
@@ -50,6 +51,7 @@ pub async fn validate_ffmpeg(path: &Path) -> Result<String> {
         .arg("-version")
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
+        .no_window()
         .output()
         .await?;
 

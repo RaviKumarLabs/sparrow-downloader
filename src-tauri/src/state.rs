@@ -15,6 +15,17 @@ pub struct DownloadHandle {
     pub child: Arc<tokio::sync::Mutex<Option<tokio::process::Child>>>,
 }
 
+/// Cached tool version strings populated by the first `get_system_info` call
+/// after startup or after settings are saved.  Avoids re-spawning yt-dlp and
+/// ffmpeg on every About page navigation.
+#[derive(Debug, Default, Clone)]
+pub struct VersionCache {
+    pub ytdlp: Option<String>,
+    pub ffmpeg: Option<String>,
+    /// True after the first successful probe since the last settings save.
+    pub valid: bool,
+}
+
 pub struct AppState {
     pub db: Arc<Mutex<Connection>>,
     pub active_downloads: Arc<Mutex<HashMap<String, DownloadHandle>>>,
@@ -22,4 +33,6 @@ pub struct AppState {
     /// Notified when a download slot may have opened or a new item was enqueued.
     /// The queue worker wakes on this to drain the queue.
     pub queue_notify: Arc<Notify>,
+    /// Cached yt-dlp / ffmpeg version strings.  Invalidated on settings save.
+    pub version_cache: Arc<RwLock<VersionCache>>,
 }
